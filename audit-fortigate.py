@@ -63,6 +63,96 @@ def main():
 if __name__ == "__main__":
     main()
 
+# Helper functions
+def extract_value(output_str, key):
+    """
+    Extract the value for a given key from the output of a FortiOS command.
+    
+    Args:
+        output_str (str): The output string from a FortiOS command.
+        key (str): The key to search for in the output.
+    
+    Returns:
+        The value associated with the given key, or None if the key is not found.
+    """
+    for line in output_str.splitlines():
+        parts = line.strip().split()
+        if len(parts) >= 2 and parts[0] == key:
+            return parts[1]
+    return None
+
+def check_ssh_restrictions(output_str):
+    """
+    Check if the SSH access restrictions are properly configured.
+    
+    Args:
+        output_str (str): The output of the "get system admin" command.
+    
+    Returns:
+        True if the SSH access restrictions are properly configured, False otherwise.
+    """
+    # Check if SSH access is restricted to specific IP addresses or subnets
+    if "ssh-valid-time" not in output_str or "ssh-filter" not in output_str:
+        return False
+    
+    # Check if the SSH valid time is restricted to 15 minutes or less
+    ssh_valid_time = extract_value(output_str, "ssh-valid-time")
+    if ssh_valid_time is None or int(ssh_valid_time) > 15:
+        return False
+    
+    # Check if the SSH filter is configured to restrict access to specific IPs or subnets
+    ssh_filter = extract_value(output_str, "ssh-filter")
+    if ssh_filter is None or ssh_filter == "all":
+        return False
+    
+    return True
+
+def check_default_admin_disabled(output_str):
+    """
+    Check if the default admin account is disabled.
+    
+    Args:
+        output_str (str): The output of the "get system admin" command.
+    
+    Returns:
+        True if the default admin account is disabled, False otherwise.
+    """
+    # Check if the default admin account is present in the output
+    if "admin admin" in output_str:
+        # Check if the default admin account is disabled
+        if "status: disable" in output_str:
+            return True
+        else:
+            return False
+    else:
+        # Default admin account is not present, which is also acceptable
+        return True
+
+def run_checks(validator, checks):
+    """
+    Execute the validation checks and store the results.
+    
+    Args:
+        validator (FortiGateValidator): The FortiGateValidator instance.
+        checks (dict): A dictionary of validation checks, where the keys are the check names
+                      and the values are dictionaries with "command", "test", and "requirement" keys.
+    
+    Returns:
+        bool: True if all checks pass, False otherwise.
+    """
+    all_passed = True
+    for check_name, check_config in checks.items():
+        output = validator.execute_command(check_config["command"])
+        passed = check_config["test"](output)
+        validator.results[check_name] = {
+            "requirement": check_config["requirement"],
+            "passed": passed
+        }
+        if not passed:
+            all_passed = False
+    return all_passed
+
+
 
 # Core validation functions
 def validate_password_policy(validator):
