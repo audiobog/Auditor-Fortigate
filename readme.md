@@ -23,21 +23,11 @@ pip install paramiko
 
 ### Usage
 
-1. Update the `FortiGateValidator` class in the `fortigate_validator.py` file with your FortiGate's connection details:
-
-```python
-validator = FortiGateValidator(
-    host="your-fortigate-ip-or-hostname",
-    username="your-fortigate-username",
-    password="your-fortigate-password",
-    port=22  # Change if necessary
-)
-```
-
-2. Run the validation script:
+1. Run the validation script:
 
 ```
-python fortigate_validator.py
+python fortigate_validator.py --host 192.168.1.99 --user admin --prompt-for-password
+
 ```
 
 The script will connect to your FortiGate, run the various compliance checks, and display the results.
