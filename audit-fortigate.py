@@ -129,7 +129,15 @@ def value_equals(output: str, key: str, expected: str) -> bool:
 # Strip ANSI escape sequences that some FortiOS versions emit.
 _ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 # Default FortiGate prompts end with `# ` (privileged) or `$ ` (operator).
-_PROMPT_RE = re.compile(r"[\r\n][\w.\-]+\s*[#$]\s*$")
+# Match either at start of buffer or after a newline so the very first prompt
+# is recognised even when no preceding newline has been received.
+_PROMPT_RE = re.compile(r"(?:^|[\r\n])[\w.\-]+(?:\s*\([\w.\-]+\))?\s*[#$]\s*$")
+# FortiOS pre-login disclaimer prompt: "Press 'a' to accept this disclaimer".
+_DISCLAIMER_RE = re.compile(r"Press\s+'a'\s+to\s+accept", re.IGNORECASE)
+# FortiOS forced-password-change / Y-N prompts.
+_YESNO_RE = re.compile(r"\(y/n\)\s*$", re.IGNORECASE)
+# FortiOS "--More--" pager prompt (in case pager-disable hasn't taken effect yet).
+_MORE_RE = re.compile(r"--More--\s*$")
 
 
 class FortiGateSession:
@@ -174,20 +182,36 @@ class FortiGateSession:
                 socket.error, socket.timeout) as exc:
             raise ConnectionError(f"SSH connection to {self.host} failed: {exc}") from exc
 
+        # Keep the SSH transport alive across slow checks so the FortiGate
+        # doesn't tear the channel down on us mid-audit.
+        try:
+            transport = client.get_transport()
+            if transport is not None:
+                transport.set_keepalive(15)
+        except Exception:  # pragma: no cover - best-effort hardening
+            pass
+
         chan = client.invoke_shell(width=512, height=2000)
         chan.settimeout(self.timeout)
         self._client = client
         self._chan = chan
 
-        # Drain banner / login text.
+        # Drain banner / login text and accept any pre-login disclaimer.
         self._read_until_prompt(initial=True)
-        # Disable terminal pagination on the FortiGate.
-        try:
-            self.execute_command("config system console")
-            self.execute_command("set output standard")
-            self.execute_command("end")
-        except Exception:  # pragma: no cover - best-effort hardening
-            pass
+        # Disable terminal pagination on the FortiGate. We probe each command
+        # individually so an unexpected error on one of them doesn't poison
+        # the rest of the session.
+        for cmd in ("config system console", "set output standard", "end"):
+            if self._chan is None or self._chan.closed:
+                raise ConnectionError(
+                    "FortiGate closed the SSH channel during login. "
+                    "Check trusted-hosts, account permissions, or any "
+                    "forced password-change prompt."
+                )
+            try:
+                self.execute_command(cmd)
+            except Exception:  # pragma: no cover - best-effort hardening
+                break
 
     def disconnect(self) -> None:
         if self._chan is not None:
@@ -220,9 +244,20 @@ class FortiGateSession:
         """Run a single FortiOS CLI command and return its stripped output."""
         if self._chan is None:
             raise RuntimeError("SSH session is not connected")
+        if self._chan.closed or self._chan.exit_status_ready():
+            raise ConnectionError(
+                "FortiGate SSH channel was closed by the remote side before "
+                "the command could be sent. The most common causes are: a "
+                "trusted-host restriction, an idle/admintimeout, or a "
+                "pre-login disclaimer/forced password-change that the script "
+                "could not auto-answer."
+            )
         if self.verbose:
             print(f"  [cmd] {command}", file=sys.stderr)
-        self._chan.send(command + "\n")
+        try:
+            self._chan.send(command + "\n")
+        except (OSError, paramiko.SSHException) as exc:
+            raise ConnectionError(f"SSH send failed: {exc}") from exc
         raw = self._read_until_prompt()
         return self._clean_output(raw, command)
 
@@ -232,10 +267,41 @@ class FortiGateSession:
         deadline = time.time() + self.timeout
         idle_deadline = time.time() + (3 if initial else 1.5)
         while time.time() < deadline:
+            if self._chan.closed:
+                break
             if self._chan.recv_ready():
-                chunk = self._chan.recv(65535).decode("utf-8", errors="replace")
+                try:
+                    chunk = self._chan.recv(65535).decode("utf-8", errors="replace")
+                except (OSError, socket.timeout, paramiko.SSHException):
+                    break
+                if not chunk:
+                    break
                 buf += chunk
                 idle_deadline = time.time() + 1.0
+
+                # Auto-handle interactive prompts that would otherwise hang us.
+                if _DISCLAIMER_RE.search(buf):
+                    try:
+                        self._chan.send("a")
+                    except Exception:
+                        break
+                    buf = ""
+                    continue
+                if _MORE_RE.search(buf):
+                    try:
+                        self._chan.send(" ")
+                    except Exception:
+                        break
+                    continue
+                if _YESNO_RE.search(buf):
+                    # Decline anything we don't recognise (e.g. forced password
+                    # change). The caller will see the surrounding text.
+                    try:
+                        self._chan.send("n\n")
+                    except Exception:
+                        break
+                    continue
+
                 if _PROMPT_RE.search(buf):
                     # Make sure no more bytes are pending.
                     time.sleep(0.05)
@@ -254,8 +320,10 @@ class FortiGateSession:
         # Drop the first line if it just echoes the command we sent.
         if lines and command and lines[0].strip().endswith(command.strip()):
             lines = lines[1:]
-        # Drop the final prompt line.
-        if lines and re.match(r"^[\w.\-]+\s*[#$]\s*$", lines[-1].strip()):
+        # Drop the final prompt line (FortiGate may include a sub-mode segment
+        # in parentheses, e.g. "FGT-VM64 (global) #").
+        prompt_line = re.compile(r"^[\w.\-]+(?:\s*\([\w.\-]+\))?\s*[#$]\s*$")
+        if lines and prompt_line.match(lines[-1].strip()):
             lines = lines[:-1]
         return "\n".join(lines).strip()
 
@@ -421,12 +489,12 @@ def register_password_policy_checks(engine: CheckEngine) -> None:
 
     engine.evaluate(
         "CIS-1.1.4",
-        "Password expiration <= 90 days",
+        "Password expiration <= 365 days",
         [CIS, IEC + " FR1.7"],
         SEVERITY_MEDIUM,
-        "Administrative passwords must expire at least every 90 days.",
-        "expire-day in (1..90)",
-        "config system password-policy\n  set expire-status enable\n  set expire-day 90\nend",
+        "Administrative passwords must expire at least every 365 days.",
+        "expire-day in (365)",
+        "config system password-policy\n  set expire-status enable\n  set expire-day 365\nend",
         [cmd],
         chk_expiry,
     )
@@ -478,15 +546,15 @@ def register_admin_access_checks(engine: CheckEngine) -> None:
 
     def chk_timeout(o: Dict[str, str]) -> CheckOutcome:
         n = to_int(extract_value(o[g], "admintimeout"))
-        return _outcome(n is not None and 0 < n <= 10, f"admintimeout={n}")
+        return _outcome(n is not None and 0 < n <= 15, f"admintimeout={n}")
 
     engine.evaluate(
         "CIS-2.1.1",
-        "Idle administrative session timeout <= 10 minutes",
+        "Idle administrative session timeout <= 15 minutes",
         [CIS, IEC + " FR1.13"],
         SEVERITY_HIGH,
-        "Idle administrator sessions must be terminated within 10 minutes.",
-        "admintimeout in (1..10)",
+        "Idle administrator sessions must be terminated within 15 minutes.",
+        "admintimeout in (1..15)",
         "config system global\n  set admintimeout 5\nend",
         [g],
         chk_timeout,

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FortiGate Compliance Report - admin@10.0.0.1:22</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+         margin: 2rem; color: #1f2933; }
+  h1 { margin-bottom: 0; }
+  .meta { color: #6b7280; margin-bottom: 1.5rem; }
+  .summary { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+  .card { padding: 1rem 1.25rem; border-radius: 8px; min-width: 110px;
+           color: #fff; font-weight: 600; }
+  .card span { display:block; font-size: 0.75rem; font-weight: 400; opacity: 0.85; }
+  .pass { background:#15803d; }
+  .fail { background:#b91c1c; }
+  .err  { background:#b45309; }
+  .man  { background:#4b5563; }
+  table { border-collapse: collapse; width:100%; font-size: 0.92rem; }
+  th, td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  th { background:#f3f4f6; text-align:left; }
+  tr.pass-row td:first-child { border-left: 4px solid #15803d; }
+  tr.fail-row td:first-child { border-left: 4px solid #b91c1c; }
+  tr.err-row  td:first-child { border-left: 4px solid #b45309; }
+  tr.man-row  td:first-child { border-left: 4px solid #4b5563; }
+  .sev-HIGH { color:#b91c1c; font-weight:600; }
+  .sev-MEDIUM { color:#b45309; font-weight:600; }
+  .sev-LOW { color:#15803d; font-weight:600; }
+  pre { background:#0f172a; color:#e2e8f0; padding: 0.6rem; border-radius:6px;
+         white-space: pre-wrap; word-break: break-word; font-size: 0.82rem; }
+  details summary { cursor:pointer; color:#1d4ed8; }
+</style>
+</head>
+<body>
+<h1>FortiGate Compliance Report</h1>
+<p class="meta">Device: <strong>admin@10.0.0.1:22</strong> &middot; Generated 2026-04-28T21:31:16+00:00 UTC
+&middot; Score <strong>46.9%</strong></p>
+<div class="summary">
+  <div class="card pass"><span>PASS</span>15</div>
+  <div class="card fail"><span>FAIL</span>17</div>
+  <div class="card err"><span>ERROR</span>0</div>
+  <div class="card man"><span>MANUAL</span>0</div>
+</div>
+<table>
+<thead>
+<tr><th>ID</th><th>Status</th><th>Severity</th><th>Title</th>
+<th>Standards</th><th>Result / Remediation</th></tr>
+</thead>
+<tbody>
+<tr class='fail-row'><td><code>CIS-1.1.4</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>Password expiration &lt;= 365 days</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.7</td><td><strong>Requirement:</strong> Administrative passwords must expire at least every 365 days.<br><strong>Expected:</strong> <code>expire-day in (365)</code><br><strong>Actual:</strong> <code>expire-day=None</code><br><details><summary>Remediation</summary><pre>config system password-policy
+  set expire-status enable
+  set expire-day 90
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-2.1.2</code></td><td>FAIL</td><td class='sev-LOW'>LOW</td><td>Pre-login banner enabled</td><td>CIS FortiGate L1, UK NCSC CAF B5.a</td><td><strong>Requirement:</strong> A pre-login banner notifying users of acceptable use must be displayed.<br><strong>Expected:</strong> <code>pre-login-banner: enable</code><br><strong>Actual:</strong> <code>pre-login-banner=disable</code><br><details><summary>Remediation</summary><pre>config system global
+  set pre-login-banner enable
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-2.3.1</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>All admin accounts restricted by trusted hosts</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.1, UK NCSC CAF B2.c</td><td><strong>Requirement:</strong> Every administrator account must restrict source IPs via trusthost1..N.<br><strong>Expected:</strong> <code>every admin has at least one trusthost set</code><br><strong>Actual:</strong> <code>admins=4, trusthost-entries=0</code><br><details><summary>Remediation</summary><pre>config system admin
+  edit &lt;name&gt;
+    set trusthost1 &lt;cidr&gt;
+  next
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-2.4.1</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>Default &#x27;admin&#x27; account removed or disabled</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.1</td><td><strong>Requirement:</strong> The factory-default &#x27;admin&#x27; username must not be usable.<br><strong>Expected:</strong> <code>no enabled admin named &#x27;admin&#x27;</code><br><strong>Actual:</strong> <code>default &#x27;admin&#x27; present, ENABLED</code><br><details><summary>Remediation</summary><pre>config system admin
+  delete admin
+end  (or rename / disable)</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-3.1.2</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>All event categories logged</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR2.8</td><td><strong>Requirement:</strong> All security-relevant event categories must be logged.<br><strong>Expected:</strong> <code>log eventfilter: event, system, user, router, vpn, wan-opt = enable</code><br><strong>Actual:</strong> <code>missing: event,system,user,router,vpn,wan-opt</code><br><details><summary>Remediation</summary><pre>config log eventfilter
+  set event enable
+  set system enable
+  set user enable
+  set router enable
+  set vpn enable
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-4.3.1</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>SNMPv3 only (no v1/v2c communities)</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR4.1</td><td><strong>Requirement:</strong> Only authenticated/encrypted SNMPv3 may be used; v1/v2c must be disabled.<br><strong>Expected:</strong> <code>no enabled snmp communities AND &gt;=1 snmp v3 user</code><br><strong>Actual:</strong> <code>v1/v2c=off, v3-users=0</code><br><details><summary>Remediation</summary><pre>config system snmp community
+  delete &lt;id&gt;
+end
+config system snmp user
+  edit &lt;name&gt;
+    set security-level auth-priv
+    set auth-proto sha256
+    set priv-proto aes256
+  next
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-4.4.1</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>No clear-text management protocols on any interface</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR4.1</td><td><strong>Requirement:</strong> Telnet and HTTP must not be permitted on any interface.<br><strong>Expected:</strong> <code>no interface has allowaccess including telnet or http</code><br><strong>Actual:</strong> <code>clear-text mgmt: http</code><br><details><summary>Remediation</summary><pre>config system interface
+  edit &lt;iface&gt;
+    unset allowaccess  (then re-add only ssh, https, ping, snmp)
+  next
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-5.1.1</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>No any/any firewall policies</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR5.1, UK NCSC CAF B4.a</td><td><strong>Requirement:</strong> Policies that allow all sources, destinations and services concurrently are forbidden.<br><strong>Expected:</strong> <code>no policy with srcaddr=all AND dstaddr=all AND service=ALL</code><br><strong>Actual:</strong> <code>any/any policies: kit 2 outside,kit 2 jslab,kit 2 jslab-AD,esxi 2 kit,esxi 2 ad,kit 2 jslab-ILO,config 2 internet,template 2 internet,config 2 esxi,template 2 esxi,config 2 ad,template 2 ad,config 2 kit-csteam,template 2 kit-csteam,kit 2 sslvpnportal,VPN-2-Haugesund,VPN-2-Haugesund--,ekstrovert 2 zabbix,VPN-2-world,Haug_to_Ask,HAU-ASK-VPN2,HOW3-L2-int5-to-WORLD,ASK-HAU-HOW3L2,Haug_To_Fog,Leam_to_Ask,MapTa_to_Ask,Ask_to_Haug,Ask-Leam_VPN,Ask_MapTa-VPN,Test-PC_To_Remote-Sites,Test-PC-Outside,Outbound_to_VPN-MNTEST,Inbound_from_VPN-MNTEST</code><br><details><summary>Remediation</summary><pre>Replace overly broad policies with least-privilege rules limited by source, destination and service.</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-5.2.1</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>All firewall policies log traffic</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR2.8, UK NCSC CAF C1.a</td><td><strong>Requirement:</strong> Every accept/deny policy must log traffic for auditability.<br><strong>Expected:</strong> <code>set logtraffic all|utm on every policy</code><br><strong>Actual:</strong> <code>25/77 policies with traffic logging</code><br><details><summary>Remediation</summary><pre>config firewall policy
+  edit &lt;id&gt;
+    set logtraffic all
+  next
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-5.3.1</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>IPS profile applied on inter-zone policies</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR3.4</td><td><strong>Requirement:</strong> Intrusion Prevention must protect cross-zone traffic.<br><strong>Expected:</strong> <code>&gt;=50% of policies have an ips-sensor set</code><br><strong>Actual:</strong> <code>2/77 policies with ips-sensor</code><br><details><summary>Remediation</summary><pre>config firewall policy
+  edit &lt;id&gt;
+    set ips-sensor &quot;protect_client&quot;
+  next
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>CIS-5.4.1</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>Antivirus profile applied to user-facing policies</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR3.2</td><td><strong>Requirement:</strong> AV inspection must protect user/server flows.<br><strong>Expected:</strong> <code>&gt;=1 policy with av-profile</code><br><strong>Actual:</strong> <code>av-profile defined=True, policies with av=0</code><br><details><summary>Remediation</summary><pre>config antivirus profile
+  edit &quot;default&quot;
+  next
+end
+config firewall policy
+  edit &lt;id&gt;
+    set av-profile &quot;default&quot;
+  next
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>IEC-1.5</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>Multi-factor authentication for all administrators</td><td>IEC 62443-3-3 SL4 FR1.5, UK NCSC CAF B2.a</td><td><strong>Requirement:</strong> All administrative accounts must require a second authentication factor.<br><strong>Expected:</strong> <code>every admin: set two-factor fortitoken|email|sms</code><br><strong>Actual:</strong> <code>0/4 admins with 2FA</code><br><details><summary>Remediation</summary><pre>config system admin
+  edit &lt;name&gt;
+    set two-factor fortitoken
+    set fortitoken &lt;serial&gt;
+  next
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>IEC-3.2</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>USB management interface disabled</td><td>IEC 62443-3-3 SL4 FR3.2</td><td><strong>Requirement:</strong> Physical USB-based provisioning must be disabled to reduce attack surface.<br><strong>Expected:</strong> <code>usb-mgmt: disable</code><br><strong>Actual:</strong> <code>usb-mgmt=None</code><br><details><summary>Remediation</summary><pre>config system global
+  set usb-mgmt disable
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>IEC-4.2</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>Cryptographic hardening (no SSH-CBC, MD5, SHA1, TLS&lt;1.2)</td><td>IEC 62443-3-3 SL4 FR4.1, CIS FortiGate L1</td><td><strong>Requirement:</strong> Weak ciphers must be disabled across the management plane.<br><strong>Expected:</strong> <code>ssh-cbc-cipher/ssh-hmac-md5/ssh-kex-sha1: disable; admin TLS &gt;= 1.2</code><br><strong>Actual:</strong> <code>strong-crypto=enable, ssh-cbc-cipher=None, ssh-hmac-md5=None, ssh-kex-sha1=None, admin-https-ssl-versions=tlsv1-2 tlsv1-3</code><br><details><summary>Remediation</summary><pre>config system global
+  set ssh-cbc-cipher disable
+  set ssh-hmac-md5 disable
+  set ssh-kex-sha1 disable
+  set admin-https-ssl-versions tlsv1-2 tlsv1-3
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>IEC-4.3</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>FIPS-CC mode enabled</td><td>IEC 62443-3-3 SL4 FR4.3, UK NCSC CAF B5.b</td><td><strong>Requirement:</strong> FIPS 140-2/3 evaluated cryptographic mode is required at SL4.<br><strong>Expected:</strong> <code>fips-cc-mode: enable</code><br><strong>Actual:</strong> <code>fips-cc=None</code><br><details><summary>Remediation</summary><pre>config system fips-cc
+  set status enable
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>IEC-6.2</code></td><td>FAIL</td><td class='sev-HIGH'>HIGH</td><td>Syslog transport is reliable and encrypted</td><td>IEC 62443-3-3 SL4 FR4.1, IEC 62443-3-3 SL4 FR6.1</td><td><strong>Requirement:</strong> Audit log transmission to the SIEM must be reliable and confidential.<br><strong>Expected:</strong> <code>syslogd mode reliable AND enc-algorithm high</code><br><strong>Actual:</strong> <code>reliable=True, enc=False</code><br><details><summary>Remediation</summary><pre>config log syslogd setting
+  set mode reliable
+  set enc-algorithm high
+end</pre></details></td></tr>
+<tr class='fail-row'><td><code>IEC-7.2</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>High availability cluster configured</td><td>IEC 62443-3-3 SL4 FR7.2, UK NCSC CAF D1.a</td><td><strong>Requirement:</strong> Redundant control / data plane is required for SL4 availability.<br><strong>Expected:</strong> <code>ha-mode in {a-p, a-a}</code><br><strong>Actual:</strong> <code>ha-mode=standalone</code><br><details><summary>Remediation</summary><pre>config system ha
+  set mode a-p
+  set group-name &lt;gid&gt;
+end</pre></details></td></tr>
+<tr class='pass-row'><td><code>CIS-1.1.1</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Password policy is enabled</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.7, UK NCSC CAF B2.a</td><td><strong>Requirement:</strong> A password policy must be enforced for all administrative accounts.<br><strong>Expected:</strong> <code>status: enable</code><br><strong>Actual:</strong> <code>status=enable</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-1.1.2</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Minimum password length &gt;= 14</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.7</td><td><strong>Requirement:</strong> Administrative passwords must be at least 14 characters long (SL4 hardening over CIS L1&#x27;s 8).<br><strong>Expected:</strong> <code>minimum-length &gt;= 14</code><br><strong>Actual:</strong> <code>minimum-length=14</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-1.1.3</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Password complexity (upper, lower, number, special)</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.7</td><td><strong>Requirement:</strong> Passwords must contain at least one uppercase, lowercase, numeric and special character.<br><strong>Expected:</strong> <code>all of: min-upper-case-letter, min-lower-case-letter, min-number, min-non-alphanumeric &gt;= 1</code><br><strong>Actual:</strong> <code>min-lower-case-letter=1, min-upper-case-letter=1, min-non-alphanumeric=1, min-number=1</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-1.1.5</code></td><td>PASS</td><td class='sev-MEDIUM'>MEDIUM</td><td>Password reuse prevention</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.7</td><td><strong>Requirement:</strong> Reuse of previous administrative passwords must be prevented.<br><strong>Expected:</strong> <code>reuse-password: disable</code><br><strong>Actual:</strong> <code>reuse-password=disable</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-1.2.1</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Admin lockout threshold and duration</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.11, UK NCSC CAF B2.a</td><td><strong>Requirement:</strong> Failed logins must lock the account after a small number of attempts.<br><strong>Expected:</strong> <code>admin-lockout-threshold &lt;= 5 AND admin-lockout-duration &gt;= 60</code><br><strong>Actual:</strong> <code>threshold=5, duration=300s</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-2.1.1</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Idle administrative session timeout &lt;= 15 minutes</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.13</td><td><strong>Requirement:</strong> Idle administrator sessions must be terminated within 15 minutes.<br><strong>Expected:</strong> <code>admintimeout in (1..15)</code><br><strong>Actual:</strong> <code>admintimeout=15</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-2.1.3</code></td><td>PASS</td><td class='sev-LOW'>LOW</td><td>Post-login banner enabled</td><td>CIS FortiGate L1, UK NCSC CAF B5.a</td><td><strong>Requirement:</strong> A post-login banner reinforcing accountability must be displayed.<br><strong>Expected:</strong> <code>post-login-banner: enable</code><br><strong>Actual:</strong> <code>post-login-banner=enable</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-2.2.1</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Strong cryptography enabled (TLS 1.2+/SSH-2)</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR4.1</td><td><strong>Requirement:</strong> FIPS-grade ciphers must be enforced for all management traffic.<br><strong>Expected:</strong> <code>strong-crypto: enable</code><br><strong>Actual:</strong> <code>strong-crypto=enable</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-2.3.2</code></td><td>PASS</td><td class='sev-MEDIUM'>MEDIUM</td><td>SSHv1 disabled on management plane</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR4.1</td><td><strong>Requirement:</strong> Only SSHv2 must be permitted for CLI administration.<br><strong>Expected:</strong> <code>admin-ssh-v1: disable</code><br><strong>Actual:</strong> <code>admin-ssh-v1=disable</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-3.1.1</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Remote syslog enabled</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR6.1, UK NCSC CAF C1.a</td><td><strong>Requirement:</strong> Logs must be shipped off-box to a tamper-evident SIEM/syslog target.<br><strong>Expected:</strong> <code>syslogd status enable AND server set</code><br><strong>Actual:</strong> <code>syslogd enabled=True, server=set</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-3.2.1</code></td><td>PASS</td><td class='sev-LOW'>LOW</td><td>Local logging buffer enabled</td><td>CIS FortiGate L1</td><td><strong>Requirement:</strong> Local disk or memory logging must be available to bridge syslog outages.<br><strong>Expected:</strong> <code>disk or memory log status: enable</code><br><strong>Actual:</strong> <code>disk=True, memory=False</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-4.1.1</code></td><td>PASS</td><td class='sev-MEDIUM'>MEDIUM</td><td>NTP synchronisation enabled</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR2.10</td><td><strong>Requirement:</strong> Accurate time is required for forensic correlation.<br><strong>Expected:</strong> <code>ntpsync: enable</code><br><strong>Actual:</strong> <code>ntpsync=enable</code><br></td></tr>
+<tr class='pass-row'><td><code>CIS-4.1.2</code></td><td>PASS</td><td class='sev-LOW'>LOW</td><td>Resilient DNS configuration</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR7.1</td><td><strong>Requirement:</strong> Both primary and secondary DNS must be configured for resilience.<br><strong>Expected:</strong> <code>primary AND secondary DNS set (non-zero)</code><br><strong>Actual:</strong> <code>primary=96.45.45.45, secondary=96.45.46.46</code><br></td></tr>
+<tr class='pass-row'><td><code>IEC-3.4</code></td><td>PASS</td><td class='sev-LOW'>LOW</td><td>At least one IPS sensor profile is defined</td><td>IEC 62443-3-3 SL4 FR3.4</td><td><strong>Requirement:</strong> The device must have at least one IPS profile available to attach to policies.<br><strong>Expected:</strong> <code>&gt;=1 ips sensor</code><br><strong>Actual:</strong> <code>ips sensors found</code><br></td></tr>
+<tr class='pass-row'><td><code>IEC-4.1</code></td><td>PASS</td><td class='sev-HIGH'>HIGH</td><td>Management GUI forces HTTPS</td><td>IEC 62443-3-3 SL4 FR4.1, UK NCSC CAF B5.b</td><td><strong>Requirement:</strong> Plaintext HTTP administration must be redirected to HTTPS.<br><strong>Expected:</strong> <code>admin-https-redirect: enable</code><br><strong>Actual:</strong> <code>admin-port=80, admin-sport=443, https-redirect=True</code><br></td></tr>
+</tbody>
+</table>
+</body></html>
