@@ -485,7 +485,7 @@ def register_password_policy_checks(engine: CheckEngine) -> None:
 
     def chk_expiry(o: Dict[str, str]) -> CheckOutcome:
         days = to_int(extract_value(o[cmd], "expire-day"))
-        return _outcome(days is not None and 0 < days <= 90, f"expire-day={days}")
+        return _outcome(days is not None and 0 < days <= 365, f"expire-day={days}")
 
     engine.evaluate(
         "CIS-1.1.4",

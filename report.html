@@ -33,7 +33,7 @@
 </head>
 <body>
 <h1>FortiGate Compliance Report</h1>
-<p class="meta">Device: <strong>admin@10.0.0.1:22</strong> &middot; Generated 2026-04-28T21:31:16+00:00 UTC
+<p class="meta">Device: <strong>admin@10.0.0.1:22</strong> &middot; Generated 2026-04-28T21:36:57+00:00 UTC
 &middot; Score <strong>46.9%</strong></p>
 <div class="summary">
   <div class="card pass"><span>PASS</span>15</div>
@@ -47,9 +47,9 @@
 <th>Standards</th><th>Result / Remediation</th></tr>
 </thead>
 <tbody>
-<tr class='fail-row'><td><code>CIS-1.1.4</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>Password expiration &lt;= 365 days</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.7</td><td><strong>Requirement:</strong> Administrative passwords must expire at least every 365 days.<br><strong>Expected:</strong> <code>expire-day in (365)</code><br><strong>Actual:</strong> <code>expire-day=None</code><br><details><summary>Remediation</summary><pre>config system password-policy
+<tr class='fail-row'><td><code>CIS-1.1.4</code></td><td>FAIL</td><td class='sev-MEDIUM'>MEDIUM</td><td>Password expiration &lt;= 365 days</td><td>CIS FortiGate L1, IEC 62443-3-3 SL4 FR1.7</td><td><strong>Requirement:</strong> Administrative passwords must expire at least every 365 days.<br><strong>Expected:</strong> <code>expire-day in (365)</code><br><strong>Actual:</strong> <code>expire-day=365</code><br><details><summary>Remediation</summary><pre>config system password-policy
   set expire-status enable
-  set expire-day 90
+  set expire-day 365
 end</pre></details></td></tr>
 <tr class='fail-row'><td><code>CIS-2.1.2</code></td><td>FAIL</td><td class='sev-LOW'>LOW</td><td>Pre-login banner enabled</td><td>CIS FortiGate L1, UK NCSC CAF B5.a</td><td><strong>Requirement:</strong> A pre-login banner notifying users of acceptable use must be displayed.<br><strong>Expected:</strong> <code>pre-login-banner: enable</code><br><strong>Actual:</strong> <code>pre-login-banner=disable</code><br><details><summary>Remediation</summary><pre>config system global
   set pre-login-banner enable
