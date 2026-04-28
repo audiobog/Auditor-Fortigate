@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 FortiGate CIS L1 + UK CAF + IEC 62443 SL4 Compliance Validator
+(Not working yet - in development)
 """
 
 import paramiko
