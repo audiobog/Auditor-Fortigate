@@ -2,6 +2,20 @@
 
 This Python script allows you to validate the configuration of your FortiGate firewall against the CIS Benchmarks for FortiOS (Level 1), as well as additional requirements from the UK Cyber Assessment Framework (UK CAF) and IEC 62443 Security Level 4 (SL4).
 
+
+## Compliance coverage (each check has id, severity, standards mapping, expected, actual, and remediation CLI):
+•  CIS 1.x – password policy enabled, length ≥ 14 (SL4-hardened from CIS L1's 8), complexity, expiry ≤ 90 d, reuse prevention, lockout threshold/duration.
+•  CIS 2.x – idle timeout ≤ 10 min, strong-crypto, pre/post login banners, trusted-hosts on every admin, default admin removed/disabled, SSHv1 disabled, plus IEC FR1.5 MFA-on-every-admin.
+•  CIS 3.x – remote syslog enabled, reliable + encrypted transport, full event-filter coverage, local disk/memory buffer.
+•  CIS 4.x – NTP sync, dual DNS, SNMPv3-only, no telnet/http on any interface, USB mgmt disabled.
+•  CIS 5.x – no any/any rules, traffic logging on every policy, IPS sensor coverage, AV profile applied, ≥1 IPS sensor defined.
+•  IEC 62443 SL4 extras – FIPS-CC mode, HA cluster active, admin GUI HTTPS-only, SSH-CBC/MD5/SHA1 disabled, admin TLS ≥ 1.2.
+
+## Reporting
+•  Console summary with PASS/FAIL/ERROR/MANUAL counts and overall score.
+•  --report-json, --report-md, and a self-contained styled --report-html (severity-coloured rows, collapsible remediation).
+•  --fail-on {any,high,never} controls the process exit code so the tool plugs into CI/pipelines.
+
 ### Prerequisites
 
 - Python 3.6 or later
@@ -21,12 +35,18 @@ git clone https://github.com/your-username/fortigate-compliance-validator.git
 pip install paramiko
 ```
 
+
+
+Run example:
+bash
+
 ### Usage
 
 1. Run the validation script:
 
+
 ```
-python fortigate_validator.py --host 192.168.1.99 --user admin --prompt-for-password
+python audit-fortigate.py --host 192.168.1.99 --user admin --prompt-for-password --report-html report.html --report-json report.json --report-md report.md
 
 ```
 
