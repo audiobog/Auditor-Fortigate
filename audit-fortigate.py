@@ -11,58 +11,6 @@ import argparse
 import getpass
 
 
-class FortiGateValidator:
-    def __init__(self, host, username, password, port=22):
-        self.host = host
-        self.username = username
-        self.password = password
-        self.port = port
-        self.ssh = None
-        self.results = {}
-
-    def connect(self):
-        """Establish SSH connection"""
-        
-    def execute_command(self, command):
-        """Execute FortiOS command and return output"""
-        
-    def disconnect(self):
-        """Close SSH connection"""
-
-def main():
-    parser = argparse.ArgumentParser(description="FortiGate CIS L1 + UK CAF + IEC 62443 SL4 Compliance Validator")
-    parser.add_argument("--host", required=True, help="FortiGate hostname or IP address")
-    parser.add_argument("--user", required=True, help="FortiGate admin username")
-    parser.add_argument("--prompt-for-password", action="store_true", help="Prompt for password instead of using a command-line argument")
-    args = parser.parse_args()
-
-    if args.prompt_for_password:
-        password = getpass.getpass("Enter FortiGate password: ")
-    else:
-        parser.add_argument("--password", required=True, help="FortiGate admin password")
-        args = parser.parse_args()
-        password = args.password
-
-    validator = FortiGateValidator(
-        host=args.host,
-        username=args.user,
-        password=password
-    )
-
-    # Run validation checks
-    validate_password_policy(validator)
-    #validate_admin_access(validator)
-    #validate_logging_monitoring(validator)
-    #validate_network_services(validator)
-    #validate_firewall_policies(validator)
-
-    # Display results
-    for check, result in validator.results.items():
-        print(f"{result['requirement']}: {'PASS' if result['passed'] else 'FAIL'}")
-
-if __name__ == "__main__":
-    main()
-
 # Helper functions
 def extract_value(output_str, key):
     """
@@ -221,5 +169,57 @@ def validate_admin_access(validator):
         }
     }  
     return run_checks(validator, checks)
+
+class FortiGateValidator:
+    def __init__(self, host, username, password, port=22):
+        self.host = host
+        self.username = username
+        self.password = password
+        self.port = port
+        self.ssh = None
+        self.results = {}
+
+    def connect(self):
+        """Establish SSH connection"""
+        
+    def execute_command(self, command):
+        """Execute FortiOS command and return output"""
+        
+    def disconnect(self):
+        """Close SSH connection"""
+
+def main():
+    parser = argparse.ArgumentParser(description="FortiGate CIS L1 + UK CAF + IEC 62443 SL4 Compliance Validator")
+    parser.add_argument("--host", required=True, help="FortiGate hostname or IP address")
+    parser.add_argument("--user", required=True, help="FortiGate admin username")
+    parser.add_argument("--prompt-for-password", action="store_true", help="Prompt for password instead of using a command-line argument")
+    args = parser.parse_args()
+
+    if args.prompt_for_password:
+        password = getpass.getpass("Enter FortiGate password: ")
+    else:
+        parser.add_argument("--password", required=True, help="FortiGate admin password")
+        args = parser.parse_args()
+        password = args.password
+
+    validator = FortiGateValidator(
+        host=args.host,
+        username=args.user,
+        password=password
+    )
+
+    # Run validation checks
+    validate_password_policy(validator)
+    #validate_admin_access(validator)
+    #validate_logging_monitoring(validator)
+    #validate_network_services(validator)
+    #validate_firewall_policies(validator)
+
+    # Display results
+    for check, result in validator.results.items():
+        print(f"{result['requirement']}: {'PASS' if result['passed'] else 'FAIL'}")
+
+if __name__ == "__main__":
+    main()
 
 
