@@ -51,10 +51,10 @@ def main():
 
     # Run validation checks
     validate_password_policy(validator)
-    validate_admin_access(validator)
-    validate_logging_monitoring(validator)
-    validate_network_services(validator)
-    validate_firewall_policies(validator)
+    #validate_admin_access(validator)
+    #validate_logging_monitoring(validator)
+    #validate_network_services(validator)
+    #validate_firewall_policies(validator)
 
     # Display results
     for check, result in validator.results.items():
@@ -154,12 +154,7 @@ def run_checks(validator, checks):
 
 
 
-# Core validation functions
-def validate_password_policy(validator):
-    """CIS 1.1.x - Password Policy Controls"""
-    
-def validate_admin_access(validator):
-    """CIS 2.x - Administrative Access Controls"""
+# Core validation functions   
     
 def validate_logging_monitoring(validator):
     """CIS 3.x - Logging and Monitoring"""
