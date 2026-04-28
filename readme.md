@@ -1,5 +1,3 @@
-Absolutely, let's put together a complete README.md for your FortiGate CIS L1 validation script!
-
 ## FortiGate CIS L1, UK CAF, and IEC 62443 SL4 Compliance Validator
 
 This Python script allows you to validate the configuration of your FortiGate firewall against the CIS Benchmarks for FortiOS (Level 1), as well as additional requirements from the UK Cyber Assessment Framework (UK CAF) and IEC 62443 Security Level 4 (SL4).
